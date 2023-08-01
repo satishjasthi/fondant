@@ -1,3 +1,5 @@
+import ast
+
 import pandas as pd
 import requests
 from caption_images.src.main import CaptionImagesComponent
@@ -6,22 +8,26 @@ from fondant.abstract_component_test import AbstractComponentTest
 
 class TestCaptionImagesComponent(AbstractComponentTest):
     def create_component(self):
+        comp_args = self.test_config["component_arguments"]
         return CaptionImagesComponent(
-            model_id="Salesforce/blip-image-captioning-base",
-            batch_size=4,
-            max_new_tokens=2,
+            model_id=comp_args["model_id"],
+            batch_size=comp_args["batch_size"],
+            max_new_tokens=comp_args["max_new_tokens"],
         )
 
     def create_input_data(self):
-        image_urls = [
-            "https://cdn.pixabay.com/photo/2023/06/29/09/52/angkor-thom-8096092_1280.jpg",
-            "https://cdn.pixabay.com/photo/2023/07/19/18/56/japanese-beetle-8137606_1280.png",
-        ]
+        image_urls = self.test_config["input_data"]["image_urls"]
         return pd.DataFrame(
             {"images": {"data": [requests.get(url).content for url in image_urls]}},
         )
 
     def create_output_data(self):
         return pd.DataFrame(
-            data={("captions", "text"): {0: "a motorcycle", 1: "a beetle"}},
+            data={
+                ast.literal_eval(key): {
+                    int(nested_key): nested_value
+                    for nested_key, nested_value in value.items()
+                }
+                for key, value in self.test_config["expected_output"].items()
+            },
         )

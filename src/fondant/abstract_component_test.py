@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 
 import pandas as pd
@@ -34,6 +35,8 @@ class AbstractComponentTest(ABC):
         This method will be run before each test method.
         Add any common setup steps for your components here.
         """
+        with open("./test_config.json") as buffer:
+            self.test_config = json.load(buffer)
         self.component = self.create_component()
         self.input_data = self.create_input_data()
         self.expected_output_data = self.create_output_data()
